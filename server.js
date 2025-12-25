@@ -17,8 +17,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from frontend directory
-app.use(express.static(path.join(__dirname, 'frontend')));
+// Serve static files
+app.use(express.static('public'));
 
 // OTP storage (in-memory for demo)
 const otpStorage = new Map();
@@ -49,15 +49,6 @@ app.post('/api/v1/auth/forgot-password', async (req, res) => {
       });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid email format' 
-      });
-    }
-
     // Generate OTP
     const otp = generateOTP();
     const expiryTime = Date.now() + 10 * 60 * 1000; // 10 minutes
@@ -80,10 +71,6 @@ app.post('/api/v1/auth/forgot-password', async (req, res) => {
           </div>
           <p style="font-size: 14px; color: #666; text-align: center;">
             If you didn't request this reset, please ignore this email.
-          </p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 12px; color: #999; text-align: center;">
-            RCA Platform - Password Reset System
           </p>
         </div>
       `
@@ -121,7 +108,7 @@ app.post('/api/v1/auth/resend-otp', async (req, res) => {
 
     // Generate new OTP
     const otp = generateOTP();
-    const expiryTime = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const expiryTime = Date.now() + 10 * 60 * 1000;
 
     // Store OTP
     otpStorage.set(email, { otp, expiryTime });
@@ -139,10 +126,6 @@ app.post('/api/v1/auth/resend-otp', async (req, res) => {
             <h1 style="font-size: 32px; color: #007bff; text-align: center; margin: 10px 0; letter-spacing: 3px;">${otp}</h1>
             <p style="font-size: 14px; color: #666;">This code will expire in 10 minutes.</p>
           </div>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 12px; color: #999; text-align: center;">
-            RCA Platform - Password Reset System
-          </p>
         </div>
       `
     };
@@ -201,14 +184,6 @@ app.post('/api/v1/auth/reset-password', (req, res) => {
       });
     }
 
-    // Validate password
-    if (newPassword.length < 6) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Password must be at least 6 characters' 
-      });
-    }
-
     // Clear OTP and simulate password update
     otpStorage.delete(email);
     
@@ -230,7 +205,7 @@ app.post('/api/v1/auth/reset-password', (req, res) => {
 
 // Catch all route - serve index.html for frontend
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Error handling
